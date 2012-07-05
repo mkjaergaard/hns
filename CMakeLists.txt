@@ -16,6 +16,7 @@ include_directories(include)
 include_directories(${Boost_INCLUDE_DIRS})
 
 add_executable(hsn_test
+  src/id.cpp
   src/test.cpp
 )
 
