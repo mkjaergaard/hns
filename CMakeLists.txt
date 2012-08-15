@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
-project(llog)
+project(hns)
 
 find_package(catkin)
 catkin_stack()
