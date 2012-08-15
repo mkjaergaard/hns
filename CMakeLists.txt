@@ -1,14 +1,8 @@
 cmake_minimum_required(VERSION 2.8)
-project(hns)
+project(llog)
 
 find_package(catkin)
 catkin_stack()
-
-catkin_project(hns
-  INCLUDE_DIRS include
-)
-
-SET(CMAKE_BUILD_TYPE Debug)
 
 find_package(Boost COMPONENTS system thread regex signals)
 find_package(llog)
