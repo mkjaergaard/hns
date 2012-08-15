@@ -12,42 +12,51 @@ class PseudoTag
 protected:
   typedef ID IDType;
 
-  std::string name_;
   IDType id_;
-  IDType namespace_id_;
+  std::string name1_;
+  IDType namespace1_id_;
 
-  IDType target_namespace_id_;
-  std::string target_name_;
-  // peger på?
+  std::string name2_;
+  IDType namespace2_id_;
 
 public:
   PseudoTag(const IDType& id,
-	    const IDType& namespace_id,
-	    const std::string& name,
-	    const IDType& target_namespace_id,
-	    const std::string& target_name) :
+	    const IDType& namespace1_id,
+	    const std::string& name1,
+	    const IDType& namespace2_id,
+	    const std::string& name2) :
     id_(id),
-    namespace_id_(namespace_id),
-    name_(name),
-    target_namespace_id_(target_namespace_id),
-    target_name_(target_name)
+    namespace1_id_(namespace1_id),
+    name1_(name1),
+    namespace2_id_(namespace2_id),
+    name2_(name2)
   {
   }
 
 // Getters
-  const std::string& getName() const
+  const IDType& getID() const
   {
-    return name_;
+    return id_;
   }
 
-  const std::string& getTargetName() const
+  const std::string& getName1() const
   {
-    return target_name_;
+    return name1_;
   }
 
-  const IDType& getTargetNamespace() const
+  const std::string& getName2() const
   {
-    return target_namespace_id_;
+    return name2_;
+  }
+
+  const IDType& getNamespace1() const
+  {
+    return namespace1_id_;
+  }
+
+  const IDType& getNamespace2() const
+  {
+    return namespace2_id_;
   }
 
 };

@@ -10,11 +10,12 @@ namespace hns
 
 class Namespace
 {
-protected:
+public:
   typedef ID IDType;
 
   typedef std::set<IDType> IDListType;
 
+protected:
   IDListType node_list_;
   IDListType child_namespace_list_;
   IDListType tag_list_;
@@ -71,12 +72,12 @@ public:
     return name_;
   }
 
-  const IDType& getID()
+  const IDType& getID() const
   {
     return id_;
   }
 
-  const IDType& getParentNamespace()
+  const IDType& getParentNamespace() const
   {
     return parent_id_;
   }

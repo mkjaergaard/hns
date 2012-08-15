@@ -7,7 +7,7 @@ Vcs-Git: git://github.com/mkjargaard/hns.git
 
 Version: 0.0.1
 
-Depends: catkin
+Depends: catkin, llog
 
 Catkin-CopyrightType:
 Catkin-DebRulesType:

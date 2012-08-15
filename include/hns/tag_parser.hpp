@@ -6,6 +6,9 @@
 
 // move to external
 
+namespace hns
+{
+
 struct InvalidTagException : public std::runtime_error
 {
 public:
@@ -54,14 +57,16 @@ public:
 
   }
 
-  const NamespaceListType& getNamespaces()
+  const NamespaceListType& getNamespaces() const
   {
     return namespaces_;
   }
 
-  const std::string& getTag()
+  const std::string& getTag() const
   {
     return tag_;
   }
 
 };
+
+}
