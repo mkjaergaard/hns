@@ -1,7 +1,12 @@
 
+#include <iostream>
+#include <boost/bind.hpp>
 #include <hns/server_entity.hpp>
 
-#include <iostream>
+void callback(const hns::ID& tag_id, const hns::ID& alias_id, hns::TagEvent event)
+{
+  std::cout << "Callback" << std::endl;
+}
 
 int main()
 {
@@ -26,4 +31,6 @@ int main()
   std::cout << server.countTags("ns1/ns1_1/t1_1_2") << std::endl;
   std::cout << server.countTags("ns1/t1_1") << std::endl;
 
+  // Subscribe
+  server.subscribeTag("ns1/t1_1", boost::bind(&callback, _1, _2, _3));
 }

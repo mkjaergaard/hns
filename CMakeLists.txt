@@ -16,4 +16,4 @@ add_executable(hsn_test
   src/test.cpp
 )
 
-target_link_libraries(hsn_test ${BOOST_LIBRARIES} ${llog_LIBRARIES} -lstdc++)
+target_link_libraries(hsn_test ${Boost_LIBRARIES} ${llog_LIBRARIES} -lstdc++)

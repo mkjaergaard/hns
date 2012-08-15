@@ -3,11 +3,19 @@
 #include <string>
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
+#include <boost/signal.hpp>
+#include <boost/function.hpp>
 #include <hns/id.hpp>
 #include <hns/tag_callback_i.hpp>
 
 namespace hns
 {
+
+typedef enum
+{
+  TagRemoved = 0,
+  TagAdded = 1
+} TagEvent;
 
 class Tag
 {
@@ -15,16 +23,20 @@ protected:
   typedef ID IDType;
   typedef std::set<IDType> NodeListType;
 
-  std::string name_;
   IDType id_;
-  NodeListType node_list_;
-
   IDType namespace_id_;
+
+  std::string name_;
+  NodeListType node_list_;
 
   size_t users_;
 
-  typedef std::vector<MyCallback*> SubscriberListType;
-  SubscriberListType subscribers_;
+public:
+  typedef boost::function<void(IDType, IDType, TagEvent)> TagListenerType;
+
+protected:
+  typedef boost::signal<void(IDType, IDType, TagEvent)> TagListenerSignalType;
+  TagListenerSignalType tag_listeners_;
 
 public:
   Tag(const IDType& id, const IDType& namespace_id, const std::string& name) :
@@ -32,6 +44,17 @@ public:
     namespace_id_(namespace_id),
     name_(name)
   {
+    users_ = 1;
+  }
+
+  void triggerAddedAlias(const IDType& alias_tag_id)
+  {
+    tag_listeners_(id_, alias_tag_id, TagAdded);
+  }
+
+  void triggerRemovedAlias(const IDType& alias_tag_id)
+  {
+    tag_listeners_(id_, alias_tag_id, TagRemoved);
   }
 
   const std::string& getName() const
@@ -39,26 +62,19 @@ public:
     return name_;
   }
 
+  const IDType& getID()
+  {
+    return id_;
+  }
+
   const IDType& getNamespace()
   {
     return namespace_id_;
   }
 
-  void addSubscriber(MyCallback* callback)
+  void addSubscriber(TagListenerType callback)
   {
-    subscribers_.push_back(callback);
-  }
-
-  void triggerSubscribers(const IDType& tag_id,
-			  const IDType& alias_id,
-			  const IDType& entity_id)
-  {
-    for(SubscriberListType::iterator it = subscribers_.begin();
-	it != subscribers_.end();
-	it++)
-    {
-      (*it)->tagEntryAdded(tag_id, alias_id, entity_id);
-    }
+    tag_listeners_.connect(callback);
   }
 
 };

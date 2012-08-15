@@ -119,9 +119,11 @@ public:
     return tree_.countTags(ns_id, tag_parser.getTag());
   }
 
-  void subscribeTag(const std::string& tag, MyCallback* callback)
+  void subscribeTag(const std::string& tag, Tag::TagListenerType callback)
   {
-    // return tree_.subscribeTag(tag, callback);
+    TagParser tag_parser(tag);
+    IDType ns_id = createNS(tag_parser.getNamespaces());
+    return tree_.subscribeTag(ns_id, tag_parser.getTag(), callback);
   }
 
 

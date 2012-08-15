@@ -5,7 +5,7 @@
 namespace hns
 {
 
-class MyCallback
+class TagListener
 {
 public:
   virtual void tagEntryAdded(const boost::uuids::uuid& tag_id,

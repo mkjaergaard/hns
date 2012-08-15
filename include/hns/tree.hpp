@@ -3,6 +3,7 @@
 #include <map>
 #include <set>
 #include <string>
+#include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/uuid/uuid.hpp>
@@ -30,6 +31,7 @@ protected:
   typedef std::map<IDType, TagPtr> TagListType;
   typedef std::map<IDType, PseudoTagPtr> PseudoTagListType;
 
+public:
   NamespaceListType namespace_list_;
   TagListType tag_list_;
   PseudoTagListType pseudo_tag_list_;
@@ -212,15 +214,25 @@ private:
 			 ns->accessTagList(),
 			 tag_list_);
   }
-/*
-  const IDType& hasPseudoTag(const boost::shared_ptr<const Namespace>& ns, const std::string& tag_name)
+
+  void triggerNewTag(const TagPtr& tag, const NamespacePtr& ns)
   {
-    return hasChild<PseudoTag>(ns,
-			       tag_name,
-			       ns->accessPseudoTagList(),
-			       pseudo_tag_list_);
+    std::set<IDType> tags_list;
+    std::set<IDType> pseudo_tags_list;
+    searchFromTagName(tag->getName(), ns, tags_list, pseudo_tags_list);
+
+    for(std::set<IDType>::const_iterator it = tags_list.begin();
+	it != tags_list.end();
+	it++)
+    {
+      if(tag->getID() != *it) // todo: not sure if we want to trigger for our own tag?
+      {
+	TagPtr alias_tag = findTag(*it);
+	tag->triggerAddedAlias(alias_tag->getID());
+      }
+    }
   }
-*/
+
 public:
   // ********************************************
   // Functions for registering entries
@@ -271,7 +283,8 @@ public:
     ns1->accessPseudoTagList().insert(new_id);
     ns2->accessPseudoTagList().insert(new_id);
 
-    PseudoTagListType::iterator new_item = pseudo_tag_list_.insert(PseudoTagListType::value_type(new_id, tag)).first;
+    PseudoTagListType::iterator new_item =
+      pseudo_tag_list_.insert(PseudoTagListType::value_type(new_id, tag)).first;
 
     llog::log(llog::Severity::Debug, "Creating Pseudotag",
 	      "Tag1", llog::Argument<std::string>(name1),
@@ -281,6 +294,11 @@ public:
   }
 
   const IDType& registerTag(const IDType& parent_ns_id, const std::string& name)
+  {
+    return registerTag_(parent_ns_id, name)->getID();
+  }
+
+  TagPtr registerTag_(const IDType& parent_ns_id, const std::string& name)
   {
     NamespacePtr& parent = findNamespace(parent_ns_id);
 
@@ -296,15 +314,14 @@ public:
       llog::log(llog::Severity::Debug, "Creating Tag",
 		"Tag", llog::Argument<std::string>(name));
 
-      return new_item->first;
+      return tag;
     }
     else
     {
       // Return existing id
-      return tag_id;
+      return findTag(tag_id);
     }
   }
-
 
   int countTags(const IDType& ns_id, const std::string& name)
   {
@@ -315,6 +332,13 @@ public:
     searchFromTagName(name, ns, tags_list, pseudo_tags_list);
 
     return tags_list.size();
+  }
+
+  void subscribeTag(const IDType& ns_id, const std::string& name, Tag::TagListenerType subscriber)
+  {
+    TagPtr tag = registerTag_(ns_id, name);
+    tag->addSubscriber(subscriber);
+    triggerNewTag(tag, findNamespace(ns_id));
   }
 
 };
