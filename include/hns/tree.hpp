@@ -18,6 +18,8 @@
 #include <hns/id_arg.hpp>
 #include <hns/namespace_arg.hpp>
 
+using namespace llog;
+
 namespace hns
 {
 
@@ -91,9 +93,9 @@ private:
 			std::set<IDType>& found_tags_list,
 			std::set<IDType>& found_pseudo_tags_list)
   {
-    llog::log(llog::Severity::Trace, "searchPseudoTags",
-	      "In NS",   llog::Argument<std::string>(ns->getName()),
-	      "For Tag", llog::Argument<std::string>(tag_name));
+    llog<llog::Severity::Trace>("searchPseudoTags",
+				     "In NS",   llog::Argument<std::string>(ns->getName()),
+				     "For Tag", llog::Argument<std::string>(tag_name));
 
     for(IDListType::const_iterator it = ns->accessPseudoTagList().begin();
 	it != ns->accessPseudoTagList().end();
@@ -105,9 +107,10 @@ private:
       {
 	if (pseudo_tag->getNamespace1() == ns->getID() && pseudo_tag->getName1() == tag_name)
 	{
-	  llog::log(llog::Severity::Trace, "Matched 1st",
-		    "N1", llog::Argument<std::string>(pseudo_tag->getName1()),
-		    "N2", llog::Argument<std::string>(pseudo_tag->getName2()));
+	  llog<llog::Severity::Trace>(
+	    "Matched 1st",
+	    "N1", llog::Argument<std::string>(pseudo_tag->getName1()),
+	    "N2", llog::Argument<std::string>(pseudo_tag->getName2()));
 
 	  found_pseudo_tags_list.insert(tag_id);
 	  searchFromTagName(pseudo_tag->getName2(),
@@ -117,9 +120,10 @@ private:
 	}
 	else if (pseudo_tag->getNamespace2() == ns->getID() && pseudo_tag->getName2() == tag_name)
 	{
-	  llog::log(llog::Severity::Trace, "Matched 2nd",
-		    "N1", llog::Argument<std::string>(pseudo_tag->getName1()),
-		    "N2", llog::Argument<std::string>(pseudo_tag->getName2()));
+	  llog<llog::Severity::Trace>
+	    ("Matched 2nd",
+	     "N1", llog::Argument<std::string>(pseudo_tag->getName1()),
+	     "N2", llog::Argument<std::string>(pseudo_tag->getName2()));
 
 	  found_pseudo_tags_list.insert(tag_id);
 	  searchFromTagName(pseudo_tag->getName1(),
@@ -130,9 +134,10 @@ private:
       }
       else
       {
-	llog::log(llog::Severity::Trace, "Skipping Pseudotag",
-		    "N1", llog::Argument<std::string>(pseudo_tag->getName1()),
-		    "N2", llog::Argument<std::string>(pseudo_tag->getName2()));
+	llog<llog::Severity::Trace>(
+	  "Skipping Pseudotag",
+	  "N1", llog::Argument<std::string>(pseudo_tag->getName1()),
+	  "N2", llog::Argument<std::string>(pseudo_tag->getName2()));
       }
 
     }
@@ -144,9 +149,10 @@ private:
 			 std::set<IDType>& found_tags_list,
 			 std::set<IDType>& found_pseudo_tags_list)
   {
-    llog::log(llog::Severity::Trace, "searchFromTagName",
-	      "In NS",   llog::Argument<std::string>(ns->getName()),
-	      "For Tag", llog::Argument<std::string>(tag_name));
+    llog<llog::Severity::Trace>(
+      "searchFromTagName",
+      "In NS",   llog::Argument<std::string>(ns->getName()),
+      "For Tag", llog::Argument<std::string>(tag_name));
 
     // Search for tags with the name
     for(IDListType::const_iterator it = ns->accessTagList().begin();
@@ -158,12 +164,12 @@ private:
       {
 	if(found_tags_list.find(*it) == found_tags_list.end())
 	{
-	  llog::log(llog::Severity::Trace, "Found tag");
+	  llog::llog<llog::Severity::Trace>("Found tag");
 	  found_tags_list.insert(*it);
 	}
 	else
 	{
-	  llog::log(llog::Severity::Trace, "Skipping");
+	  llog::llog<llog::Severity::Trace>("Skipping");
 	  return; // Namespace allready visited for this tag, just stop searching
 	}
       }
@@ -252,8 +258,9 @@ public:
       parent->accessChildNamespaceList().insert(new_id);
       NamespaceListType::iterator new_item = namespace_list_.insert(NamespaceListType::value_type(new_id, ns)).first;
 
-      llog::log(llog::Severity::Debug, "Creating Namespace",
-		"Tag", llog::Argument<std::string>(name));
+      llog::llog<llog::Severity::Debug>(
+	"Creating Namespace",
+	"Tag", llog::Argument<std::string>(name));
 
       return new_item->first;
     }
@@ -286,9 +293,10 @@ public:
     PseudoTagListType::iterator new_item =
       pseudo_tag_list_.insert(PseudoTagListType::value_type(new_id, tag)).first;
 
-    llog::log(llog::Severity::Debug, "Creating Pseudotag",
-	      "Tag1", llog::Argument<std::string>(name1),
-	      "Tag2", llog::Argument<std::string>(name2));
+    llog<llog::Severity::Debug>(
+      "Creating Pseudotag",
+      "Tag1", llog::Argument<std::string>(name1),
+      "Tag2", llog::Argument<std::string>(name2));
 
     return new_item->first;
   }
@@ -311,8 +319,9 @@ public:
       parent->accessTagList().insert(new_id);
       TagListType::iterator new_item = tag_list_.insert(TagListType::value_type(new_id, tag)).first;
 
-      llog::log(llog::Severity::Debug, "Creating Tag",
-		"Tag", llog::Argument<std::string>(name));
+      llog<llog::Severity::Debug>(
+	"Creating Tag",
+	"Tag", llog::Argument<std::string>(name));
 
       return tag;
     }

@@ -18,6 +18,8 @@
 
 #include <hns/tag_parser_arg.hpp>
 
+using namespace llog;
+
 namespace hns
 {
 
@@ -39,8 +41,9 @@ public:
 
     TagParser tag_parser(tag);
 
-    llog::log(llog::Severity::Debug, "registerTag",
-	      "Tag", llog::Argument<TagParser>(tag_parser));
+    llog<llog::Severity::Debug>(
+      "registerTag",
+       "Tag", llog::Argument<TagParser>(tag_parser));
 
     for(TagParser::NamespaceListType::const_iterator it = tag_parser.getNamespaces().begin();
 	it != tag_parser.getNamespaces().end();
@@ -52,19 +55,6 @@ public:
     return tree_.registerTag(current_ns_id, tag_parser.getTag());
   }
 
-/*
-  void subscribeTag(const std::string& tag, MyCallback* callback)
-  {
-    const IDType& tag_id = registerTag(tag);
-
-    TagPtr& tag_entry = findTag(tag_id);
-
-    //tag_entry->addSubscriber(callback);
-    std::set<IDType> group;
-    populateGroupFromTag(tag_id, group);
-    std::cout << "Size of group " << group.size() << std::endl;
-  }
-*/
   const IDType& registerPseudoTag(const std::string& tag1, const std::string& tag2)
   {
     // **********
@@ -91,10 +81,10 @@ public:
       ns2_id = tree_.registerNamespace(ns2_id, *it);
     }
 
-    llog::log(llog::Severity::Debug, "registerPseudoTag",
-	      "Tag1", llog::Argument<TagParser>(tag1_parser),
-	      "Tag2", llog::Argument<TagParser>(tag2_parser));
-
+    llog<llog::Severity::Debug>
+      ("registerPseudoTag",
+       "Tag1", llog::Argument<TagParser>(tag1_parser),
+       "Tag2", llog::Argument<TagParser>(tag2_parser));
 
     return tree_.registerPseudoTag(ns1_id, tag1_parser.getTag(),
 				   ns2_id, tag2_parser.getTag());
