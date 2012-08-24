@@ -12,6 +12,7 @@
 #include <hns/pseudo_tag.hpp>
 #include <hns/namespace.hpp>
 #include <hns/tree.hpp>
+#include <hns/tag_handle.hpp>
 
 #include <llog/context.hpp>
 #include <llog/logger.hpp>
@@ -35,7 +36,7 @@ public:
   }
 
   // based on full string
-  const IDType& registerTag(const std::string& tag)
+  TagHandle registerTag(const std::string& tag)
   {
     IDType current_ns_id = tree_.getRootNS();
 
@@ -52,7 +53,7 @@ public:
       current_ns_id = tree_.registerNamespace(current_ns_id, *it);
     }
 
-    return tree_.registerTag(current_ns_id, tag_parser.getTag());
+    return TagHandle(tree_.registerTag(current_ns_id, tag_parser.getTag()));
   }
 
   const IDType& registerPseudoTag(const std::string& tag1, const std::string& tag2)
@@ -108,14 +109,14 @@ public:
     IDType ns_id = createNS(tag_parser.getNamespaces());
     return tree_.countTags(ns_id, tag_parser.getTag());
   }
-
+/*
   void subscribeTag(const std::string& tag, Tag::TagListenerType callback)
   {
     TagParser tag_parser(tag);
     IDType ns_id = createNS(tag_parser.getNamespaces());
     return tree_.subscribeTag(ns_id, tag_parser.getTag(), callback);
   }
-
+*/
 
 };
 

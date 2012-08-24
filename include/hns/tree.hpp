@@ -93,9 +93,10 @@ private:
 			std::set<IDType>& found_tags_list,
 			std::set<IDType>& found_pseudo_tags_list)
   {
-    llog<llog::Severity::Trace>("searchPseudoTags",
-				     "In NS",   llog::Argument<std::string>(ns->getName()),
-				     "For Tag", llog::Argument<std::string>(tag_name));
+    llog<llog::Severity::Trace>(
+      "searchPseudoTags",
+      "In NS",   llog::Argument<std::string>(ns->getName()),
+      "For Tag", llog::Argument<std::string>(tag_name));
 
     for(IDListType::const_iterator it = ns->accessPseudoTagList().begin();
 	it != ns->accessPseudoTagList().end();
@@ -120,10 +121,10 @@ private:
 	}
 	else if (pseudo_tag->getNamespace2() == ns->getID() && pseudo_tag->getName2() == tag_name)
 	{
-	  llog<llog::Severity::Trace>
-	    ("Matched 2nd",
-	     "N1", llog::Argument<std::string>(pseudo_tag->getName1()),
-	     "N2", llog::Argument<std::string>(pseudo_tag->getName2()));
+	  llog<llog::Severity::Trace>(
+	    "Matched 2nd",
+	    "N1", llog::Argument<std::string>(pseudo_tag->getName1()),
+	    "N2", llog::Argument<std::string>(pseudo_tag->getName2()));
 
 	  found_pseudo_tags_list.insert(tag_id);
 	  searchFromTagName(pseudo_tag->getName1(),
@@ -221,6 +222,25 @@ private:
 			 tag_list_);
   }
 
+  void triggerRemovedTag(const TagPtr& tag, const NamespacePtr& ns)
+  {
+    std::set<IDType> tags_list;
+    std::set<IDType> pseudo_tags_list;
+    searchFromTagName(tag->getName(), ns, tags_list, pseudo_tags_list);
+
+    for(std::set<IDType>::const_iterator it = tags_list.begin();
+	it != tags_list.end();
+	it++)
+    {
+      if(tag->getID() != *it) // we dont trigger for our own tag
+      {
+	TagPtr alias_tag = findTag(*it);
+	alias_tag->triggerRemovedAlias(tag->getID());
+      }
+    }    
+  }
+
+  // Finds all matching tags and triggers callback
   void triggerNewTag(const TagPtr& tag, const NamespacePtr& ns)
   {
     std::set<IDType> tags_list;
@@ -231,10 +251,11 @@ private:
 	it != tags_list.end();
 	it++)
     {
-      if(tag->getID() != *it) // todo: not sure if we want to trigger for our own tag?
+      if(tag->getID() != *it) // we dont trigger for our own tag
       {
 	TagPtr alias_tag = findTag(*it);
 	tag->triggerAddedAlias(alias_tag->getID());
+	alias_tag->triggerAddedAlias(tag->getID());
       }
     }
   }
@@ -276,23 +297,28 @@ public:
 				  const IDType& ns2_id,
 				  const std::string& name2)
   {
+    // Find namespace instances
     NamespacePtr& ns1 = findNamespace(ns1_id);
     NamespacePtr& ns2 = findNamespace(ns2_id);
 
     //todo: manage duplicate tags
 
+    // Create the pseudo tag
     IDType new_id = IDType::create();
     PseudoTagPtr tag = boost::make_shared<PseudoTag>(new_id,
 						     ns1_id,
 						     name1,
 						     ns2_id,
 						     name2);
-    ns1->accessPseudoTagList().insert(new_id);
-    ns2->accessPseudoTagList().insert(new_id);
-
+    // Add to pseudo-tag list
     PseudoTagListType::iterator new_item =
       pseudo_tag_list_.insert(PseudoTagListType::value_type(new_id, tag)).first;
 
+    // Add to both namespaces
+    ns1->accessPseudoTagList().insert(new_id);
+    ns2->accessPseudoTagList().insert(new_id);
+
+    // Log
     llog<llog::Severity::Debug>(
       "Creating Pseudotag",
       "Tag1", llog::Argument<std::string>(name1),
@@ -301,9 +327,11 @@ public:
     return new_item->first;
   }
 
-  const IDType& registerTag(const IDType& parent_ns_id, const std::string& name)
+  TagPtr registerTag(const IDType& parent_ns_id, const std::string& name)
   {
-    return registerTag_(parent_ns_id, name)->getID();
+    TagPtr tag = registerTag_(parent_ns_id, name);
+    triggerNewTag(tag, findNamespace(parent_ns_id));
+    return tag;
   }
 
   TagPtr registerTag_(const IDType& parent_ns_id, const std::string& name)
@@ -332,6 +360,18 @@ public:
     }
   }
 
+  // Flush Tag
+  void flushTag(const IDType& tag_id)
+  {
+    TagPtr& tag = findTag(tag_id);
+    if(tag.use_count() == 1)
+    {
+      triggerRemovedTag(tag, findNamespace(tag->getNamespace()));
+      tag_list_.erase(tag_id);
+    }
+  }
+
+  // Tester Function
   int countTags(const IDType& ns_id, const std::string& name)
   {
     NamespacePtr& ns = findNamespace(ns_id);
@@ -342,14 +382,14 @@ public:
 
     return tags_list.size();
   }
-
+/*
   void subscribeTag(const IDType& ns_id, const std::string& name, Tag::TagListenerType subscriber)
   {
     TagPtr tag = registerTag_(ns_id, name);
     tag->addSubscriber(subscriber);
     triggerNewTag(tag, findNamespace(ns_id));
   }
-
+*/
 };
 
 }

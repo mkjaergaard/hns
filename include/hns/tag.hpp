@@ -27,9 +27,7 @@ protected:
   IDType namespace_id_;
 
   std::string name_;
-  NodeListType node_list_;
-
-  size_t users_;
+  //NodeListType node_list_;
 
 public:
   typedef boost::function<void(IDType, IDType, TagEvent)> TagListenerType;
@@ -44,7 +42,6 @@ public:
     namespace_id_(namespace_id),
     name_(name)
   {
-    users_ = 1;
   }
 
   void triggerAddedAlias(const IDType& alias_tag_id)
@@ -72,9 +69,9 @@ public:
     return namespace_id_;
   }
 
-  void addSubscriber(TagListenerType callback)
+  boost::signals::connection addSubscriber(TagListenerType callback)
   {
-    tag_listeners_.connect(callback);
+    return tag_listeners_.connect(callback);
   }
 
 };
