@@ -16,6 +16,7 @@
 
 #include <llog/context.hpp>
 #include <llog/logger.hpp>
+#include <llog/static_context.hpp>
 
 #include <hns/tag_parser_arg.hpp>
 
@@ -24,7 +25,7 @@ using namespace llog;
 namespace hns
 {
 
-class ServerEntity
+class ServerEntity : public llog::StaticScope<llog::Severity::Debug>
 {
 protected:
   Tree tree_;
@@ -53,7 +54,7 @@ public:
       current_ns_id = tree_.registerNamespace(current_ns_id, *it);
     }
 
-    return TagHandle(tree_.registerTag(current_ns_id, tag_parser.getTag()));
+    return TagHandle(&tree_, tree_.registerTag(current_ns_id, tag_parser.getTag()));
   }
 
   const IDType& registerPseudoTag(const std::string& tag1, const std::string& tag2)

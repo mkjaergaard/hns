@@ -17,8 +17,9 @@ protected:
   boost::signals::connection connection_;
 
 public:
-  TagHandle(TagPtr tag_instance) :
-    tag_instance_(tag_instance)
+  TagHandle(Tree * tree, TagPtr tag_instance) :
+    tag_instance_(tag_instance),
+    tree_(tree)
   {
   }
 
@@ -35,6 +36,18 @@ public:
     connection_ = tag_instance_->addSubscriber(listener);
   }
 
+  size_t count()
+  {
+    return tree_->countTags(
+      tag_instance_->getNamespace(),
+      tag_instance_->getName()
+      );
+  }
+
+  const ID& id()
+  {
+    return tag_instance_->getID();
+  }
 
 };
 

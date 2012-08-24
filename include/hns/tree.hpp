@@ -17,13 +17,14 @@
 #include <llog/logger.hpp>
 #include <hns/id_arg.hpp>
 #include <hns/namespace_arg.hpp>
+#include <llog/static_context.hpp>
 
 using namespace llog;
 
 namespace hns
 {
 
-class Tree
+class Tree : public llog::StaticScope<llog::Severity::Debug>
 {
 protected:
   typedef hns::ID IDType;
@@ -165,12 +166,10 @@ private:
       {
 	if(found_tags_list.find(*it) == found_tags_list.end())
 	{
-	  llog::llog<llog::Severity::Trace>("Found tag");
 	  found_tags_list.insert(*it);
 	}
 	else
 	{
-	  llog::llog<llog::Severity::Trace>("Skipping");
 	  return; // Namespace allready visited for this tag, just stop searching
 	}
       }
@@ -237,7 +236,7 @@ private:
 	TagPtr alias_tag = findTag(*it);
 	alias_tag->triggerRemovedAlias(tag->getID());
       }
-    }    
+    }
   }
 
   // Finds all matching tags and triggers callback
@@ -366,8 +365,10 @@ public:
     TagPtr& tag = findTag(tag_id);
     if(tag.use_count() == 1)
     {
+      NamespacePtr ns = findNamespace(tag->getNamespace());
       triggerRemovedTag(tag, findNamespace(tag->getNamespace()));
       tag_list_.erase(tag_id);
+      ns->accessTagList().erase(tag_id);
     }
   }
 
