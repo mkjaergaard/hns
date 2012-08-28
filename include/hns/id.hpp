@@ -2,6 +2,7 @@
 
 #include <boost/uuid/uuid.hpp>
 #include <string>
+#include <set>
 
 namespace hns
 {
@@ -17,5 +18,7 @@ public:
   static const ID& null();
 
 };
+
+typedef std::set<ID> IDListType;
 
 }

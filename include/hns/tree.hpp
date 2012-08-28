@@ -24,7 +24,13 @@ using namespace llog;
 namespace hns
 {
 
-class Tree : public llog::StaticScope<llog::Severity::Debug>
+struct SearchResult
+{
+  IDListType tags;
+  IDListType pseudo_tags;
+};
+
+class Tree : public llog::StaticScope<llog::Severity::Info>
 {
 protected:
   typedef hns::ID IDType;
@@ -91,8 +97,7 @@ private:
   // *****************************
   void searchPseudoTags(const std::string& tag_name,
 			const NamespacePtr ns,
-			std::set<IDType>& found_tags_list,
-			std::set<IDType>& found_pseudo_tags_list)
+			SearchResult& result)
   {
     llog<llog::Severity::Trace>(
       "searchPseudoTags",
@@ -105,7 +110,7 @@ private:
     {
       PseudoTagPtr pseudo_tag = findPseudoTag(*it);
       const ID& tag_id = pseudo_tag->getID();
-      if(found_pseudo_tags_list.find(tag_id) == found_pseudo_tags_list.end())
+      if(result.pseudo_tags.find(tag_id) == result.pseudo_tags.end())
       {
 	if (pseudo_tag->getNamespace1() == ns->getID() && pseudo_tag->getName1() == tag_name)
 	{
@@ -114,11 +119,10 @@ private:
 	    "N1", llog::Argument<std::string>(pseudo_tag->getName1()),
 	    "N2", llog::Argument<std::string>(pseudo_tag->getName2()));
 
-	  found_pseudo_tags_list.insert(tag_id);
+	  result.pseudo_tags.insert(tag_id);
 	  searchFromTagName(pseudo_tag->getName2(),
 			    findNamespace(pseudo_tag->getNamespace2()),
-			    found_tags_list,
-			    found_pseudo_tags_list);
+			    result);
 	}
 	else if (pseudo_tag->getNamespace2() == ns->getID() && pseudo_tag->getName2() == tag_name)
 	{
@@ -127,11 +131,10 @@ private:
 	    "N1", llog::Argument<std::string>(pseudo_tag->getName1()),
 	    "N2", llog::Argument<std::string>(pseudo_tag->getName2()));
 
-	  found_pseudo_tags_list.insert(tag_id);
+	  result.pseudo_tags.insert(tag_id);
 	  searchFromTagName(pseudo_tag->getName1(),
 			    findNamespace(pseudo_tag->getNamespace1()),
-			    found_tags_list,
-			    found_pseudo_tags_list);
+			    result);
 	}
       }
       else
@@ -148,8 +151,7 @@ private:
 // based on tag name
   void searchFromTagName(const std::string& tag_name,
 			 const NamespacePtr ns,
-			 std::set<IDType>& found_tags_list,
-			 std::set<IDType>& found_pseudo_tags_list)
+			 SearchResult& result)
   {
     llog<llog::Severity::Trace>(
       "searchFromTagName",
@@ -164,9 +166,9 @@ private:
       TagPtr child_tag = findTag(*it);
       if(child_tag->getName() == tag_name)
       {
-	if(found_tags_list.find(*it) == found_tags_list.end())
+	if(result.tags.find(*it) == result.tags.end())
 	{
-	  found_tags_list.insert(*it);
+	  result.tags.insert(*it);
 	}
 	else
 	{
@@ -174,7 +176,7 @@ private:
 	}
       }
     }
-    searchPseudoTags(tag_name, ns, found_tags_list, found_pseudo_tags_list);
+    searchPseudoTags(tag_name, ns, result);
   }
 
 private:
@@ -223,15 +225,14 @@ private:
 
   void triggerRemovedTag(const TagPtr& tag, const NamespacePtr& ns)
   {
-    std::set<IDType> tags_list;
-    std::set<IDType> pseudo_tags_list;
-    searchFromTagName(tag->getName(), ns, tags_list, pseudo_tags_list);
+    SearchResult result;
+    searchFromTagName(tag->getName(), ns, result);
 
-    for(std::set<IDType>::const_iterator it = tags_list.begin();
-	it != tags_list.end();
+    for(std::set<IDType>::const_iterator it = result.tags.begin();
+	it != result.tags.end();
 	it++)
     {
-      if(tag->getID() != *it) // we dont trigger for our own tag
+      if(tag->getID() != *it) // we dont callback for our own tag
       {
 	TagPtr alias_tag = findTag(*it);
 	alias_tag->triggerRemovedAlias(tag->getID());
@@ -242,15 +243,14 @@ private:
   // Finds all matching tags and triggers callback
   void triggerNewTag(const TagPtr& tag, const NamespacePtr& ns)
   {
-    std::set<IDType> tags_list;
-    std::set<IDType> pseudo_tags_list;
-    searchFromTagName(tag->getName(), ns, tags_list, pseudo_tags_list);
+    SearchResult result;
+    searchFromTagName(tag->getName(), ns, result);
 
-    for(std::set<IDType>::const_iterator it = tags_list.begin();
-	it != tags_list.end();
+    for(std::set<IDType>::const_iterator it = result.tags.begin();
+	it != result.tags.end();
 	it++)
     {
-      if(tag->getID() != *it) // we dont trigger for our own tag
+      if(tag->getID() != *it) // we dont callback for our own tag
       {
 	TagPtr alias_tag = findTag(*it);
 	tag->triggerAddedAlias(alias_tag->getID());
@@ -278,7 +278,7 @@ public:
       parent->accessChildNamespaceList().insert(new_id);
       NamespaceListType::iterator new_item = namespace_list_.insert(NamespaceListType::value_type(new_id, ns)).first;
 
-      llog::llog<llog::Severity::Debug>(
+      llog<llog::Severity::Debug>(
 	"Creating Namespace",
 	"Tag", llog::Argument<std::string>(name));
 
@@ -300,7 +300,7 @@ public:
     NamespacePtr& ns1 = findNamespace(ns1_id);
     NamespacePtr& ns2 = findNamespace(ns2_id);
 
-    //todo: manage duplicate tags
+    // Build trees before new tag is added
 
     // Create the pseudo tag
     IDType new_id = IDType::create();
@@ -377,11 +377,10 @@ public:
   {
     NamespacePtr& ns = findNamespace(ns_id);
 
-    std::set<IDType> tags_list;
-    std::set<IDType> pseudo_tags_list;
-    searchFromTagName(name, ns, tags_list, pseudo_tags_list);
+    SearchResult result;
+    searchFromTagName(name, ns, result);
 
-    return tags_list.size();
+    return result.tags.size();
   }
 /*
   void subscribeTag(const IDType& ns_id, const std::string& name, Tag::TagListenerType subscriber)

@@ -25,7 +25,7 @@ using namespace llog;
 namespace hns
 {
 
-class ServerEntity : public llog::StaticScope<llog::Severity::Debug>
+class ServerEntity : public llog::StaticScope<llog::Severity::Info>
 {
 protected:
   Tree tree_;

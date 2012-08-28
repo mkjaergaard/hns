@@ -26,6 +26,7 @@ public:
   ~TagHandle()
   {
     ID id = tag_instance_->getID();
+    connection_.disconnect();
     tag_instance_.reset();
     tree_->flushTag(id);
   }
