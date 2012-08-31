@@ -164,8 +164,8 @@ TEST_F(EntityTest, Tags)
   addPseudoTag("ns1/t1_1", "ns1/t1_2");
   EXPECT_EQ(countTag("ns1/t1_1"), 2);
   EXPECT_EQ(countTag("ns1/t1_2"), 2);
-  //EXPECT_TRUE(checkCallback("ns1/t1_1", "ns1/t1_2", hns::TagAdded));
-  EXPECT_TRUE(checkNoCallback());
+  EXPECT_TRUE(checkCallback("ns1/t1_1", "ns1/t1_2", hns::TagAdded));
+  //EXPECT_TRUE(checkNoCallback());
 
   // Add a link to new non-existing tag
   addPseudoTag("ns1/t1_1", "ns1/t1_3");

@@ -223,20 +223,21 @@ private:
 			 tag_list_);
   }
 
+  // ******************************
+  // Callbacks
+  // ******************************
   void triggerRemovedTag(const TagPtr& tag, const NamespacePtr& ns)
   {
     SearchResult result;
     searchFromTagName(tag->getName(), ns, result);
+    result.tags.erase(tag->getID());
 
     for(std::set<IDType>::const_iterator it = result.tags.begin();
 	it != result.tags.end();
 	it++)
     {
-      if(tag->getID() != *it) // we dont callback for our own tag
-      {
-	TagPtr alias_tag = findTag(*it);
-	alias_tag->triggerRemovedAlias(tag->getID());
-      }
+      TagPtr alias_tag = findTag(*it);
+      alias_tag->triggerRemovedAlias(tag->getID());
     }
   }
 
@@ -245,17 +246,15 @@ private:
   {
     SearchResult result;
     searchFromTagName(tag->getName(), ns, result);
+    result.tags.erase(tag->getID());
 
     for(std::set<IDType>::const_iterator it = result.tags.begin();
 	it != result.tags.end();
 	it++)
     {
-      if(tag->getID() != *it) // we dont callback for our own tag
-      {
-	TagPtr alias_tag = findTag(*it);
-	tag->triggerAddedAlias(alias_tag->getID());
-	alias_tag->triggerAddedAlias(tag->getID());
-      }
+      TagPtr alias_tag = findTag(*it);
+      tag->triggerAddedAlias(alias_tag->getID());
+      alias_tag->triggerAddedAlias(tag->getID());
     }
   }
 
@@ -301,6 +300,29 @@ public:
     NamespacePtr& ns2 = findNamespace(ns2_id);
 
     // Build trees before new tag is added
+    SearchResult tree1;
+    SearchResult tree2;
+    searchFromTagName(name1, ns1, tree1);
+    searchFromTagName(name2, ns2, tree2);
+
+    // Callback
+    if(tree2.tags.find(*tree1.tags.begin()) == tree2.tags.end())
+    {
+      for(IDListType::iterator it1 = tree1.tags.begin();
+	  it1 != tree1.tags.end();
+	  it1++)
+      {
+	TagPtr tag1 = findTag(*it1);
+	for(IDListType::iterator it2 = tree2.tags.begin();
+	    it2 != tree2.tags.end();
+	    it2++)
+	{
+	  TagPtr tag2 = findTag(*it2);
+	  tag1->triggerAddedAlias(tag2->getID());
+	  tag2->triggerAddedAlias(tag1->getID());
+	}
+      }
+    }
 
     // Create the pseudo tag
     IDType new_id = IDType::create();
@@ -382,14 +404,7 @@ public:
 
     return result.tags.size();
   }
-/*
-  void subscribeTag(const IDType& ns_id, const std::string& name, Tag::TagListenerType subscriber)
-  {
-    TagPtr tag = registerTag_(ns_id, name);
-    tag->addSubscriber(subscriber);
-    triggerNewTag(tag, findNamespace(ns_id));
-  }
-*/
+
 };
 
 }
