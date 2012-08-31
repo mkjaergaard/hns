@@ -1,11 +1,12 @@
 #include <hns/id.hpp>
-#include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <boost/uuid/uuid_generators.hpp>
 
 namespace hns
 {
 
 boost::uuids::random_generator id_random_generator_;
+
 const ID id_null_ = boost::uuids::nil_uuid();
 
 ID::ID() :
