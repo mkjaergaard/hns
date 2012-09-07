@@ -1,24 +1,18 @@
 #pragma once
 
-#include <streambuf>
+#include <hns/buffer.hpp>
 #include <boost/asio/basic_streambuf.hpp>
 
 namespace hns
 {
 
-class auto_buffer : public boost::asio::streambuf
+class auto_buffer : public boost::asio::streambuf, public hns::buffer
 {
 public:
-  buffer(size_t start_size)
+  virtual std::streambuf * streambuf()
   {
+    return this;
   }
-
-  size_t free_size()
-  {
-    return pptr() - pbase();
-  }
-
-
 };
 
 }

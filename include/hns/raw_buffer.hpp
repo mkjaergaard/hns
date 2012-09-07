@@ -8,23 +8,35 @@ namespace hns
 
 class raw_buffer : public std::streambuf, public hns::buffer
 {
-public:
-  raw_buffer(char* data, size_t len, shared_buffer next = shared_buffer()) :
-    buffer(next)
+protected:
+  void init(char* data, size_t len)
   {
     setp(data, data+len);
     setg(data, data, data+len);
   }
 
-  size_t free_size()
+public:
+  raw_buffer(char* data, size_t len)
   {
-    return pptr() - pbase();
+    init(data, len);
+  }
+
+  raw_buffer(char* data, size_t len, shared_buffer next) :
+    buffer(next)
+  {
+    init(data, len);
   }
 
   virtual std::streambuf * streambuf()
   {
     return this;
   }
+
+  virtual size_t data_count()
+  {
+    return pptr() - pbase();
+  }
+
 
 };
 
