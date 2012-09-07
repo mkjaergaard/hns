@@ -4,6 +4,7 @@
 #include <boost/function.hpp>
 #include <hns/distributed_id_types.hpp>
 #include <hns/shared_buffer.hpp>
+#include <hns/outbound_data.hpp>
 
 namespace hns
 {
@@ -29,9 +30,16 @@ public:
   void detatch(distributed_base* entry);
   void recv(const location_id_type& remote_location, hns::shared_buffer data);
 
-  void send_to(const ID& instance_id,
-	       const uint32_t payload_type,
-	       hns::shared_buffer data);
+  void send_to_instance(const ID& src_instance_id,
+			const ID& dest_instance_id,
+			const uint32_t payload_type,
+			const outbound_data_base& data);
+
+  void send_to_location(const ID& src_instance_id,
+			const ID& dest_location_id,
+			const ID& dest_instance_id,
+			const uint32_t payload_type,
+			const outbound_data_base& data);
 
 
 };

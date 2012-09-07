@@ -7,6 +7,9 @@
 #include <hns/asio_buffer.hpp>
 #include <hns/distributed_header.hpp>
 #include <boost/serialization/vector.hpp>
+#include <hns/outbound_data.hpp>
+
+#include <llog/logger.hpp>
 
 namespace hns
 {
@@ -28,20 +31,24 @@ public:
   {
   }
 
+  void insert(const T& item)
+  {
+    buffer_.push_back(item);
+  }
+
   void send_all(const client_id_type& client_id)
   {
     update msg;
     msg.type = update::complete;
     msg.num_entries = list_.size();
-    msg.index = count_;
+    msg.index = count_ + 10;
 
-    hns::shared_buffer data(new hns::asio_buffer());
-    std::ostream os(data->streambuf());
-    boost::archive::binary_oarchive a(os);
+    outbound_data<boost_serializer, update> o_msg(msg);
+    outbound_data<boost_serializer, std::vector<T> > o_list(list_);
+    outbound_pair o_pair(o_msg, o_list);
 
-    a << msg;
-    a << list_;
-
+    // send
+    send_to_instance(client_id, header::update, o_pair);
   }
 
   void send_updates(const client_id_type& client_id)
@@ -51,16 +58,13 @@ public:
     msg.num_entries = list_.size();
     msg.index = count_ + 1;
 
-    hns::shared_buffer b(new boost::asio::streambuf());
-    std::ostream os(b->streambuf());
-    boost::archive::binary_oarchive a(os);
+    outbound_data<boost_serializer, update> o_msg(msg);
+    outbound_data<boost_serializer, std::vector<T> > o_list(buffer_);
+    outbound_pair o_pair(o_msg, o_list);
 
-    a << msg;
-    a << buffer_;
+    // send
+    send_to_instance(client_id, header::update, o_list);
 
-    list_.insert(list_.end(), buffer_.begin(), buffer_.end());
-    buffer_.clear();
-    ++count_;
   }
 
   void flush()
@@ -71,24 +75,26 @@ public:
     {
       send_updates(*it);
     }
+    list_.insert(list_.end(), buffer_.begin(), buffer_.end());
+    buffer_.clear();
+    ++count_;
   }
 
-  std::size_t recv(const header& hdr, hns::shared_buffer data)
+  void recv(const header& hdr, hns::shared_buffer data)
   {
     assert(hdr.payload_type == header::control);
 
-    std::istream is(data->streambuf());
-    boost::archive::binary_iarchive archive(is);
+    inbound_data<boost_serializer, control> i_control(data);
 
-    control msg;
-    archive >> msg;
-
-    handle_control_message(msg);
-    return 0;
+    handle_control_message(i_control.get());
   }
 
   void handle_control_message(const control& msg)
   {
+    llog::llog<llog::Severity::Trace>(
+      "DistributedVector",
+      "Command", llog::Argument<int>(msg.command));
+
     switch(msg.command)
     {
     case control::subscribe:
@@ -108,8 +114,6 @@ public:
       break;
     }
   }
-
-
 
 };
 

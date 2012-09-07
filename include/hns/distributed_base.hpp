@@ -4,6 +4,7 @@
 #include <hns/distributed_id_types.hpp>
 #include <hns/distributed_header.hpp>
 #include <hns/shared_buffer.hpp>
+#include <hns/outbound_data.hpp>
 
 namespace hns
 {
@@ -22,7 +23,7 @@ public:
   {
   }
 
-  virtual std::size_t recv(const header& hdr, hns::shared_buffer data) = 0;
+  virtual void recv(const header& hdr, hns::shared_buffer data) = 0;
 
   virtual ~distributed_base()
   {
@@ -34,6 +35,15 @@ public:
   }
 
   void attach(distributed_manager * manager);
+
+  void send_to_location(const ID& dest_location_id,
+			const ID& dest_instance_id,
+			const uint32_t payload_type,
+			const outbound_data_base& data);
+
+  void send_to_instance(const ID& dest_instance_id,
+			const uint32_t payload_type,
+			const outbound_data_base& data);
 
 };
 
