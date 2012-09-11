@@ -21,22 +21,15 @@ public:
     init(data, len);
   }
 
-  raw_buffer(char* data, size_t len, shared_buffer next) :
-    buffer(next)
-  {
-    init(data, len);
-  }
-
   virtual std::streambuf * streambuf()
   {
     return this;
   }
 
-  virtual size_t data_count()
+  virtual const char* data() const
   {
-    return pptr() - pbase();
+    return pbase();
   }
-
 
 };
 

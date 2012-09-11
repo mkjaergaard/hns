@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <hns/raw_buffer.hpp>
+#include <hns/const_buffer.hpp>
 #include <hns/shared_buffer.hpp>
 
 #include <boost/archive/binary_oarchive.hpp>
@@ -58,6 +59,39 @@ TEST(BufferTest, Stacked)
   // Verify values
   EXPECT_EQ(in_val_1.get(),  99);
   EXPECT_EQ(in_val_2.get(), 120);
+
+};
+
+#include <hns/distributed_header.hpp>
+
+TEST(BufferTest, Stacked2)
+{
+  uint32_t val_1 = 99;
+  uint32_t val_2 = 120;
+
+  hns::header hdr;
+  hdr.src_instance_id = hns::ID::create();
+  hdr.dest_instance_id = hns::ID::create();
+  hdr.payload_type = hns::header::control;
+
+  // Create data
+  hns::outbound_data<hns::boost_serializer, uint32_t> o_data_1(99);
+  hns::outbound_data<hns::boost_serializer, hns::header> o_data_2(hdr);
+  hns::outbound_pair o_data(o_data_2, o_data_1);
+
+  // Create buffer and pack data
+  hns::shared_buffer buffer = boost::make_shared<hns::const_buffer>(1024);
+  o_data.pack(buffer);
+
+  // Unpack data
+  hns::inbound_data<hns::boost_serializer, hns::header> in_val_2(buffer);
+  hns::inbound_data<hns::boost_serializer, uint32_t> in_val_1(buffer);
+
+  // Verify values
+  EXPECT_EQ(in_val_1.get(),  99);
+  EXPECT_EQ(in_val_2.get().src_instance_id, hdr.src_instance_id);
+  EXPECT_EQ(in_val_2.get().dest_instance_id, hdr.dest_instance_id);
+  EXPECT_EQ(in_val_2.get().payload_type, 9);
 
 };
 
