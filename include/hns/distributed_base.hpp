@@ -19,6 +19,7 @@ protected:
 
 public:
   distributed_base() :
+    id_(ID::create()),
     manager_(0)
   {
   }

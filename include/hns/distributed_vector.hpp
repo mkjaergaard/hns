@@ -6,7 +6,7 @@
 #include <hns/id.hpp>
 #include <hns/asio_buffer.hpp>
 #include <hns/distributed_header.hpp>
-#include <boost/serialization/vector.hpp>
+#include <boost/serialization/set.hpp>
 #include <hns/outbound_data.hpp>
 
 #include <llog/logger.hpp>
@@ -18,8 +18,15 @@ template<typename T>
 class distributed_vector : public distributed_vector_base
 {
 protected:
-  std::vector<T> list_;
-  std::vector<T> buffer_;
+  typedef std::set<T> list_type;
+  typedef std::pair<typename std::set<T>::iterator, bool> insert_type;
+
+  list_type list_;
+  list_type added_list_;
+  list_type removed_list_;
+
+  uint32_t state_index_;
+  uint32_t last_update_sent_;
 
   typedef std::set<client_id_type> subscriber_list_type;
   subscriber_list_type subscriber_list_;
@@ -27,13 +34,35 @@ protected:
   server_id_type id_;
 
 public:
-  distributed_vector()
+  distributed_vector() :
+    state_index_(0),
+    last_update_sent_(0)
   {
   }
 
   void insert(const T& item)
   {
-    buffer_.push_back(item);
+    insert_type result = list_.insert(item);
+    if(result.second)
+    {
+      if(removed_list_.erase(item) == 0)
+      {
+	added_list_.insert(item);
+      }
+      state_index_++;
+    }
+  }
+
+  void erase(const T& item)
+  {
+    if(list_.erase(item) > 0)
+    {
+      if(added_list_.erase(item) == 0)
+      {
+	removed_list_.insert(item);
+      }
+      state_index_++;
+    }
   }
 
   void send_all(const client_id_type& client_id)
@@ -41,10 +70,11 @@ public:
     update msg;
     msg.type = update::complete;
     msg.num_entries = list_.size();
-    msg.index = count_ + 10;
+    msg.start_index = 0;
+    msg.end_index = state_index_;
 
     outbound_data<boost_serializer, update> o_msg(msg);
-    outbound_data<boost_serializer, std::vector<T> > o_list(list_);
+    outbound_data<boost_serializer, std::set<T> > o_list(list_);
     outbound_pair o_pair(o_msg, o_list);
 
     // send
@@ -56,28 +86,33 @@ public:
     update msg;
     msg.type = update::partial;
     msg.num_entries = list_.size();
-    msg.index = count_ + 1;
+    msg.start_index = last_update_sent_;
+    msg.end_index = state_index_;
 
     outbound_data<boost_serializer, update> o_msg(msg);
-    outbound_data<boost_serializer, std::vector<T> > o_list(buffer_);
+    outbound_data<boost_serializer, std::set<T> > o_list1(added_list_);
+    outbound_data<boost_serializer, std::set<T> > o_list2(removed_list_);
+    outbound_pair o_list(o_list1, o_list2);
     outbound_pair o_pair(o_msg, o_list);
 
     // send
-    send_to_instance(client_id, header::update, o_list);
-
+    send_to_instance(client_id, header::update, o_pair);
   }
 
   void flush()
   {
-    for(subscriber_list_type::iterator it = subscriber_list_.begin();
-	it != subscriber_list_.end();
-	it++)
+    if(state_index_ > last_update_sent_)
     {
-      send_updates(*it);
+      for(subscriber_list_type::iterator it = subscriber_list_.begin();
+	  it != subscriber_list_.end();
+	  it++)
+      {
+	send_updates(*it);
+      }
+      last_update_sent_ = state_index_;
+      added_list_.clear();
+      removed_list_.clear();
     }
-    list_.insert(list_.end(), buffer_.begin(), buffer_.end());
-    buffer_.clear();
-    ++count_;
   }
 
   void recv(const header& hdr, hns::shared_buffer data)

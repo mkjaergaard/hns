@@ -4,6 +4,8 @@
 #include <hns/id.hpp>
 #include <hns/distributed_vector_base.hpp>
 #include <llog/logger.hpp>
+#include <boost/serialization/set.hpp>
+#include <hns/outbound_data.hpp>
 
 namespace hns
 {
@@ -15,9 +17,12 @@ protected:
   typedef fsm<distributed_vector_client<T> > base;
   friend class fsm<distributed_vector_client<T> >;
 
+  typedef std::set<T> list_type;
+  typedef std::pair<typename std::set<T>::iterator, bool> insert_type;
+
   //******
   // Stuff
-  std::vector<T> list_;
+  list_type list_;
 
   ID server_location_id_;
   ID server_instance_id_;
@@ -88,17 +93,48 @@ protected:
 
   void popu_partial(ev_update_partial& e)
   {
-    inbound_data<boost_serializer, std::vector<T> > i_list(e.data);
+    inbound_data<boost_serializer, list_type> i_added_list(e.data);
+    inbound_data<boost_serializer, list_type> i_removed_list(e.data);
 
-    list_.insert(list_.begin(), i_list.get().begin(), i_list.get().end());
+    for(typename list_type::iterator it = i_added_list.get().begin();
+	it != i_added_list.get().end();
+	it++)
+    {
+      insert_type result = list_.insert(*it);
+      if(result.second)
+      {
+	llog::llog<llog::Severity::Debug>("New Item Callback");
+      }
+    }
+
+    for(typename list_type::iterator it = i_removed_list.get().begin();
+	it != i_removed_list.get().end();
+	it++)
+    {
+      if(list_.erase(*it) > 0)
+      {
+	llog::llog<llog::Severity::Debug>("Erased Item Callback");
+      }
+    }
+
   }
 
   void popu_complete(ev_update_complete& e)
   {
-    inbound_data<boost_serializer, std::vector<T> > i_list(e.data);
+    inbound_data<boost_serializer, list_type> i_added_list(e.data);
 
     list_.clear();
-    list_.insert(list_.begin(), i_list.get().begin(), i_list.get().end());
+
+    for(typename list_type::iterator it = i_added_list.get().begin();
+	it != i_added_list.get().end();
+	it++)
+    {
+      insert_type result = list_.insert(*it);
+      if(result.second)
+      {
+	llog::llog<llog::Severity::Debug>("New Item Callback 2");
+      }
+    }
   }
 
   void stash_partial(ev_update_partial& e)

@@ -36,7 +36,8 @@ struct update
   const static uint32_t partial = 1;
 
   ID server_id;
-  uint32_t index;
+  uint32_t start_index;
+  uint32_t end_index;
   uint32_t type;
   uint32_t num_entries;
 
@@ -44,7 +45,8 @@ struct update
   void serialize(Archive & ar, const unsigned int version)
   {
     ar & server_id;
-    ar & index;
+    ar & start_index;
+    ar & end_index;
     ar & type;
     ar & num_entries;
   }
@@ -53,13 +55,9 @@ struct update
 class distributed_vector_base : public distributed_base
 {
 protected:
-  uint32_t count_;
-
-  server_id_type id_;
 
 public:
-  distributed_vector_base() :
-    count_(0)
+  distributed_vector_base()
   {
   }
 

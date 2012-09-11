@@ -7,7 +7,7 @@ namespace hns
 
 struct header
 {
-  const static uint32_t control = 0;
+  const static uint32_t control = 9;
   const static uint32_t update = 1;
 
   ID dest_instance_id;
