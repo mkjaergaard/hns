@@ -15,16 +15,16 @@ public:
   typedef std::map<std::string, hns::TagHandle> HandleListType;
   HandleListType handles;
 
-  typedef std::map<std::string, hns::ID> IDListType;
+  typedef std::map<std::string, darc::ID> IDListType;
   IDListType id_list;
 
   struct CallbackEvent
   {
-    hns::ID tag_id;
-    hns::ID alias_id;
+    darc::ID tag_id;
+    darc::ID alias_id;
     hns::TagEvent event;
 
-    CallbackEvent(hns::ID tag_id, hns::ID alias_id, hns::TagEvent event) :
+    CallbackEvent(darc::ID tag_id, darc::ID alias_id, hns::TagEvent event) :
       tag_id(tag_id),
       alias_id(alias_id),
       event(event)
@@ -44,7 +44,7 @@ protected:
   {
   }
 
-  void tagCallback(std::string tag_name, hns::ID tag_id, hns::ID alias_id, hns::TagEvent event)
+  void tagCallback(std::string tag_name, darc::ID tag_id, darc::ID alias_id, hns::TagEvent event)
   {
     std::cout << tag_name << " " << event << std::endl;
 
@@ -74,7 +74,7 @@ protected:
       return false;
     }
 
-    const hns::ID& alias_id = alias_item->second;
+    const darc::ID& alias_id = alias_item->second;
 
     CallbackListType::iterator item = callbacks.find(tag_name);
     if(item != callbacks.end())

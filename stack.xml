@@ -8,6 +8,7 @@
   <copyright></copyright>
 
   <build_depends>llog</build_depends>
+  <build_depends>darc_common</build_depends>
   <depends>libboost-system</depends>
   <depends>libboost-thread</depends>
   <depends>libboost-regex</depends>

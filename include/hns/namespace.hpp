@@ -3,7 +3,7 @@
 #include <set>
 #include <string>
 #include <boost/shared_ptr.hpp>
-#include <hns/id.hpp>
+#include <darc/id.hpp>
 
 namespace hns
 {
@@ -11,7 +11,7 @@ namespace hns
 class Namespace
 {
 public:
-  typedef ID IDType;
+  typedef darc::ID IDType;
 
   typedef std::set<IDType> IDListType;
 

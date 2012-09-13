@@ -8,16 +8,17 @@
 #include <boost/make_shared.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
+#include <darc/id.hpp>
+
 #include <hns/tag_parser.hpp>
 #include <hns/tag.hpp>
 #include <hns/pseudo_tag.hpp>
 #include <hns/namespace.hpp>
-#include <hns/id.hpp>
 
 #include <llog/logger.hpp>
-#include <hns/id_arg.hpp>
-#include <hns/namespace_arg.hpp>
 #include <llog/static_context.hpp>
+#include <darc/id_arg.hpp>
+#include <hns/namespace_arg.hpp>
 
 using namespace llog;
 
@@ -30,10 +31,10 @@ struct SearchResult
   IDListType pseudo_tags;
 };
 
-class Tree : public llog::StaticScope<llog::Severity::Info>
+class Tree : public llog::StaticScope<llog::Severity::Trace>
 {
 protected:
-  typedef hns::ID IDType;
+  typedef darc::ID IDType;
 
   typedef std::set<IDType> IDListType;
   typedef std::map<IDType, NamespacePtr> NamespaceListType;

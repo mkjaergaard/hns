@@ -5,8 +5,10 @@
 #include <boost/make_shared.hpp>
 #include <boost/signal.hpp>
 #include <boost/function.hpp>
-#include <hns/id.hpp>
+#include <darc/id.hpp>
 #include <hns/tag_callback_i.hpp>
+
+using namespace darc;
 
 namespace hns
 {
@@ -20,36 +22,34 @@ typedef enum
 class Tag
 {
 protected:
-  typedef ID IDType;
-  typedef std::set<IDType> NodeListType;
+  typedef std::set<ID> NodeListType;
 
-  IDType id_;
-  IDType namespace_id_;
+  ID id_;
+  ID namespace_id_;
 
   std::string name_;
-  //NodeListType node_list_;
 
 public:
-  typedef boost::function<void(IDType, IDType, TagEvent)> TagListenerType;
+  typedef boost::function<void(ID, ID, TagEvent)> TagListenerType;
 
 protected:
-  typedef boost::signal<void(IDType, IDType, TagEvent)> TagListenerSignalType;
+  typedef boost::signal<void(ID, ID, TagEvent)> TagListenerSignalType;
   TagListenerSignalType tag_listeners_;
 
 public:
-  Tag(const IDType& id, const IDType& namespace_id, const std::string& name) :
+  Tag(const ID& id, const ID& namespace_id, const std::string& name) :
     id_(id),
     namespace_id_(namespace_id),
     name_(name)
   {
   }
 
-  void triggerAddedAlias(const IDType& alias_tag_id)
+  void triggerAddedAlias(const ID& alias_tag_id)
   {
     tag_listeners_(id_, alias_tag_id, TagAdded);
   }
 
-  void triggerRemovedAlias(const IDType& alias_tag_id)
+  void triggerRemovedAlias(const ID& alias_tag_id)
   {
     tag_listeners_(id_, alias_tag_id, TagRemoved);
   }
@@ -59,12 +59,12 @@ public:
     return name_;
   }
 
-  const IDType& getID()
+  const ID& getID()
   {
     return id_;
   }
 
-  const IDType& getNamespace()
+  const ID& getNamespace()
   {
     return namespace_id_;
   }

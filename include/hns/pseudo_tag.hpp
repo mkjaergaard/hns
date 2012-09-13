@@ -2,7 +2,9 @@
 
 #include <string>
 #include <boost/shared_ptr.hpp>
-#include <hns/id.hpp>
+#include <darc/id.hpp>
+
+using namespace darc;
 
 namespace hns
 {
@@ -10,20 +12,19 @@ namespace hns
 class PseudoTag
 {
 protected:
-  typedef ID IDType;
 
-  IDType id_;
+  ID id_;
   std::string name1_;
-  IDType namespace1_id_;
+  ID namespace1_id_;
 
   std::string name2_;
-  IDType namespace2_id_;
+  ID namespace2_id_;
 
 public:
-  PseudoTag(const IDType& id,
-	    const IDType& namespace1_id,
+  PseudoTag(const ID& id,
+	    const ID& namespace1_id,
 	    const std::string& name1,
-	    const IDType& namespace2_id,
+	    const ID& namespace2_id,
 	    const std::string& name2) :
     id_(id),
     namespace1_id_(namespace1_id),
@@ -34,7 +35,7 @@ public:
   }
 
 // Getters
-  const IDType& getID() const
+  const ID& getID() const
   {
     return id_;
   }
@@ -49,12 +50,12 @@ public:
     return name2_;
   }
 
-  const IDType& getNamespace1() const
+  const ID& getNamespace1() const
   {
     return namespace1_id_;
   }
 
-  const IDType& getNamespace2() const
+  const ID& getNamespace2() const
   {
     return namespace2_id_;
   }
