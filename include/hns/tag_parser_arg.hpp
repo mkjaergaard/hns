@@ -2,11 +2,11 @@
 
 #include <hns/tag_parser.hpp>
 
-namespace llog
+namespace beam
 {
 
 template<>
-std::string to_string(const Argument<hns::TagParser>& tag_parser)
+std::string to_string(const arg<hns::TagParser>& tag_parser)
 {
   std::ostringstream os;
   for(hns::TagParser::NamespaceListType::const_iterator it = tag_parser->getNamespaces().begin();

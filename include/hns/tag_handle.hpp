@@ -17,6 +17,11 @@ protected:
   boost::signals::connection connection_;
 
 public:
+  TagHandle() :
+    tree_(0)
+  {
+  }
+
   TagHandle(Tree * tree, TagPtr tag_instance) :
     tag_instance_(tag_instance),
     tree_(tree)
@@ -25,10 +30,13 @@ public:
 
   ~TagHandle()
   {
-    ID id = tag_instance_->getID();
-    connection_.disconnect();
-    tag_instance_.reset();
-    tree_->flushTag(id);
+    if(tag_instance_.get() != 0)
+    {
+      ID id = tag_instance_->getID();
+      connection_.disconnect();
+      tag_instance_.reset();
+      tree_->flushTag(id);
+    }
   }
 
   void addSubscriber(Tag::TagListenerType listener)
@@ -45,7 +53,7 @@ public:
       );
   }
 
-  const ID& id()
+  const ID& id() const
   {
     return tag_instance_->getID();
   }

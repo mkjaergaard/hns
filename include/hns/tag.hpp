@@ -59,7 +59,7 @@ public:
     return name_;
   }
 
-  const ID& getID()
+  const ID& getID() const
   {
     return id_;
   }

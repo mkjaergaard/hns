@@ -15,12 +15,8 @@
 #include <hns/pseudo_tag.hpp>
 #include <hns/namespace.hpp>
 
-#include <llog/logger.hpp>
-#include <llog/static_context.hpp>
+#include <beam/static_scope.hpp>
 #include <darc/id_arg.hpp>
-#include <hns/namespace_arg.hpp>
-
-using namespace llog;
 
 namespace hns
 {
@@ -31,7 +27,7 @@ struct SearchResult
   IDListType pseudo_tags;
 };
 
-class Tree : public llog::StaticScope<llog::Severity::Trace>
+class Tree : public beam::static_scope<beam::Trace>
 {
 protected:
   typedef darc::ID IDType;
@@ -100,10 +96,10 @@ private:
 			const NamespacePtr ns,
 			SearchResult& result)
   {
-    llog<llog::Severity::Trace>(
+    slog<beam::Trace>(
       "searchPseudoTags",
-      "In NS",   llog::Argument<std::string>(ns->getName()),
-      "For Tag", llog::Argument<std::string>(tag_name));
+      "In NS",   beam::arg<std::string>(ns->getName()),
+      "For Tag", beam::arg<std::string>(tag_name));
 
     for(IDListType::const_iterator it = ns->accessPseudoTagList().begin();
 	it != ns->accessPseudoTagList().end();
@@ -115,10 +111,10 @@ private:
       {
 	if (pseudo_tag->getNamespace1() == ns->getID() && pseudo_tag->getName1() == tag_name)
 	{
-	  llog<llog::Severity::Trace>(
+	  slog<beam::Trace>(
 	    "Matched 1st",
-	    "N1", llog::Argument<std::string>(pseudo_tag->getName1()),
-	    "N2", llog::Argument<std::string>(pseudo_tag->getName2()));
+	    "N1", beam::arg<std::string>(pseudo_tag->getName1()),
+	    "N2", beam::arg<std::string>(pseudo_tag->getName2()));
 
 	  result.pseudo_tags.insert(tag_id);
 	  searchFromTagName(pseudo_tag->getName2(),
@@ -127,10 +123,10 @@ private:
 	}
 	else if (pseudo_tag->getNamespace2() == ns->getID() && pseudo_tag->getName2() == tag_name)
 	{
-	  llog<llog::Severity::Trace>(
+	  slog<beam::Trace>(
 	    "Matched 2nd",
-	    "N1", llog::Argument<std::string>(pseudo_tag->getName1()),
-	    "N2", llog::Argument<std::string>(pseudo_tag->getName2()));
+	    "N1", beam::arg<std::string>(pseudo_tag->getName1()),
+	    "N2", beam::arg<std::string>(pseudo_tag->getName2()));
 
 	  result.pseudo_tags.insert(tag_id);
 	  searchFromTagName(pseudo_tag->getName1(),
@@ -140,10 +136,10 @@ private:
       }
       else
       {
-	llog<llog::Severity::Trace>(
+	slog<beam::Trace>(
 	  "Skipping Pseudotag",
-	  "N1", llog::Argument<std::string>(pseudo_tag->getName1()),
-	  "N2", llog::Argument<std::string>(pseudo_tag->getName2()));
+	  "N1", beam::arg<std::string>(pseudo_tag->getName1()),
+	  "N2", beam::arg<std::string>(pseudo_tag->getName2()));
       }
 
     }
@@ -154,10 +150,10 @@ private:
 			 const NamespacePtr ns,
 			 SearchResult& result)
   {
-    llog<llog::Severity::Trace>(
+    slog<beam::Trace>(
       "searchFromTagName",
-      "In NS",   llog::Argument<std::string>(ns->getName()),
-      "For Tag", llog::Argument<std::string>(tag_name));
+      "In NS",   beam::arg<std::string>(ns->getName()),
+      "For Tag", beam::arg<std::string>(tag_name));
 
     // Search for tags with the name
     for(IDListType::const_iterator it = ns->accessTagList().begin();
@@ -278,9 +274,9 @@ public:
       parent->accessChildNamespaceList().insert(new_id);
       NamespaceListType::iterator new_item = namespace_list_.insert(NamespaceListType::value_type(new_id, ns)).first;
 
-      llog<llog::Severity::Debug>(
+      slog<beam::Debug>(
 	"Creating Namespace",
-	"Tag", llog::Argument<std::string>(name));
+	"Tag", beam::arg<std::string>(name));
 
       return new_item->first;
     }
@@ -341,10 +337,10 @@ public:
     ns2->accessPseudoTagList().insert(new_id);
 
     // Log
-    llog<llog::Severity::Debug>(
+    slog<beam::Debug>(
       "Creating Pseudotag",
-      "Tag1", llog::Argument<std::string>(name1),
-      "Tag2", llog::Argument<std::string>(name2));
+      "Tag1", beam::arg<std::string>(name1),
+      "Tag2", beam::arg<std::string>(name2));
 
     return new_item->first;
   }
@@ -369,9 +365,9 @@ public:
       parent->accessTagList().insert(new_id);
       TagListType::iterator new_item = tag_list_.insert(TagListType::value_type(new_id, tag)).first;
 
-      llog<llog::Severity::Debug>(
+      slog<beam::Debug>(
 	"Creating Tag",
-	"Tag", llog::Argument<std::string>(name));
+	"Tag", beam::arg<std::string>(name));
 
       return tag;
     }

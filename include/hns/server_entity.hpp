@@ -14,18 +14,14 @@
 #include <hns/tree.hpp>
 #include <hns/tag_handle.hpp>
 
-#include <llog/context.hpp>
-#include <llog/logger.hpp>
-#include <llog/static_context.hpp>
+#include <beam/static_scope.hpp>
 
 #include <hns/tag_parser_arg.hpp>
-
-using namespace llog;
 
 namespace hns
 {
 
-class ServerEntity : public llog::StaticScope<llog::Severity::Info>
+class ServerEntity : public beam::static_scope<beam::Info>
 {
 protected:
   Tree tree_;
@@ -43,9 +39,9 @@ public:
 
     TagParser tag_parser(tag);
 
-    llog<llog::Severity::Debug>(
+    slog<beam::Debug>(
       "registerTag",
-       "Tag", llog::Argument<TagParser>(tag_parser));
+       "Tag", beam::arg<TagParser>(tag_parser));
 
     for(TagParser::NamespaceListType::const_iterator it = tag_parser.getNamespaces().begin();
 	it != tag_parser.getNamespaces().end();
@@ -83,10 +79,10 @@ public:
       ns2_id = tree_.registerNamespace(ns2_id, *it);
     }
 
-    llog<llog::Severity::Debug>
+    slog<beam::Debug>
       ("registerPseudoTag",
-       "Tag1", llog::Argument<TagParser>(tag1_parser),
-       "Tag2", llog::Argument<TagParser>(tag2_parser));
+       "Tag1", beam::arg<TagParser>(tag1_parser),
+       "Tag2", beam::arg<TagParser>(tag2_parser));
 
     return tree_.registerPseudoTag(ns1_id, tag1_parser.getTag(),
 				   ns2_id, tag2_parser.getTag());
